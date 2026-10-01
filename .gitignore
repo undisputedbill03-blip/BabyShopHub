@@ -1,0 +1,49 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+
+# LibreOffice / OpenOffice lock files (created while a document is open)
+.~lock.*#
+
+# IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code
+.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+pubspec.lock
+
+# Generated platform runners (recreated with `flutter create .`)
+/android/
+/ios/
+/linux/
+/macos/
+/windows/
+/web/
+
+# Symbolication / obfuscation
+app.*.symbols
+app.*.map.json
+
+# Local database file, if it ever lands in the project tree
+*.db

@@ -1,0 +1,37 @@
+name: babyshophub
+description: >-
+  BabyShopHub - a mobile shopping application for infant products.
+  Aptech eProject submission. Flutter + Dart + local SQLite (sqflite).
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # --- Local database -------------------------------------------------
+  # sqflite          : SQLite for Android / iOS
+  # sqflite_common_ffi: lets the SAME code run on Windows / Linux desktop
+  # sqlite3_flutter_libs: ships the native sqlite3 library for desktop
+  sqflite: ^2.3.0
+  sqflite_common_ffi: ^2.3.0
+  sqlite3_flutter_libs: ^0.5.0
+
+  # --- Utilities ------------------------------------------------------
+  path: ^1.8.0 # builds the database file path
+  crypto: ^3.0.0 # SHA-256 password hashing
+  provider: ^6.0.0 # state management (ChangeNotifier)
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/products/
+    - assets/images/brand/
