@@ -100,7 +100,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Product')),
+      appBar: AppBar(
+        title: const Text('Product'),
+        actions: <Widget>[
+          _FavoriteAction(productId: widget.productId),
+          const SizedBox(width: AppSpacing.sm),
+        ],
+      ),
       body: AsyncView<_ProductBundle>(
         future: _future,
         errorMessage: (_) => 'This product is no longer available.',
@@ -506,6 +512,27 @@ class _BuyBar extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The favorite toggle shown in the product page's app bar. Watches the
+/// shared wishlist so the heart fills the moment it is tapped.
+class _FavoriteAction extends StatelessWidget {
+  final int productId;
+  const _FavoriteAction({required this.productId});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isFavorite =
+        context.watch<FavoritesProvider>().isFavorite(productId);
+    return IconButton(
+      onPressed: () => context.read<FavoritesProvider>().toggle(productId),
+      tooltip: isFavorite ? 'Remove from favorites' : 'Save to favorites',
+      icon: Icon(
+        isFavorite ? Icons.favorite : Icons.favorite_border,
+        color: isFavorite ? AppColors.primary : null,
       ),
     );
   }

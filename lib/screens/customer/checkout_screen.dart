@@ -165,6 +165,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     onAdd: _addCard,
                   ),
                   const SizedBox(height: AppSpacing.xl),
+                  const _StepHeader(step: 3, title: 'Review your order'),
+                  const SizedBox(height: AppSpacing.sm),
                   _OrderSummary(cart: cart),
                   const SizedBox(height: AppSpacing.md),
                   _SimulationNote(),
@@ -201,15 +203,14 @@ class _AddressSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Row(
-          children: <Widget>[
-            const Expanded(child: Text('Delivery address', style: AppText.h3)),
-            TextButton.icon(
-              onPressed: onAdd,
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Add'),
-            ),
-          ],
+        _StepHeader(
+          step: 1,
+          title: 'Delivery address',
+          action: TextButton.icon(
+            onPressed: onAdd,
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Add'),
+          ),
         ),
         const SizedBox(height: AppSpacing.sm),
         if (addresses.isEmpty)
@@ -267,15 +268,14 @@ class _PaymentSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Row(
-          children: <Widget>[
-            const Expanded(child: Text('Payment method', style: AppText.h3)),
-            TextButton.icon(
-              onPressed: onAdd,
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Add'),
-            ),
-          ],
+        _StepHeader(
+          step: 2,
+          title: 'Payment method',
+          action: TextButton.icon(
+            onPressed: onAdd,
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Add'),
+          ),
         ),
         const SizedBox(height: AppSpacing.sm),
         if (cards.isEmpty)
@@ -320,29 +320,47 @@ class _OrderSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: AppDecorations.card(color: AppColors.surfaceAlt),
+      decoration: AppDecorations.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text('Order summary (${cart.lineCount} item'
-              '${cart.lineCount == 1 ? '' : 's'})', style: AppText.h3),
-          const SizedBox(height: AppSpacing.sm),
+          _FreeDeliveryHint(
+            subtotal: cart.subtotal,
+            remaining: cart.amountToFreeShipping,
+          ),
           for (final CartItem item in cart.items)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
               child: Row(
                 children: <Widget>[
-                  Expanded(
-                    child: Text('${item.quantity} × ${item.product.name}',
-                        style: AppText.small,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis),
+                  ProductImage(
+                    path: item.product.imagePath,
+                    width: 44,
+                    height: 44,
+                    radius: AppRadius.sm,
                   ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          item.product.name,
+                          style: AppText.small
+                              .copyWith(fontWeight: FontWeight.w600),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text('Qty ${item.quantity}', style: AppText.tiny),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
                   Text(Formats.money(item.lineTotal), style: AppText.small),
                 ],
               ),
             ),
-          const Divider(height: AppSpacing.lg),
+          const Divider(height: AppSpacing.xl),
           _row('Subtotal', Formats.money(cart.subtotal)),
           _row('Delivery',
               cart.shipping == 0 ? 'Free' : Formats.money(cart.shipping)),
@@ -355,6 +373,23 @@ class _OrderSummary extends StatelessWidget {
               const Spacer(),
               Text(Formats.money(cart.total), style: AppText.price),
             ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: AppColors.accentSoft,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: Row(
+              children: <Widget>[
+                const Icon(Icons.local_shipping_outlined,
+                    size: 16, color: AppColors.accent),
+                const SizedBox(width: AppSpacing.sm),
+                Text('Arrives in 2-4 business days',
+                    style: AppText.tiny.copyWith(color: AppColors.accent)),
+              ],
+            ),
           ),
         ],
       ),
@@ -422,26 +457,44 @@ class _PlaceOrderBar extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: ElevatedButton(
-          onPressed: placing ? null : onPlace,
-          style: AppButtons.primary(),
-          child: placing
-              ? const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.4,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(width: AppSpacing.md),
-                    Text('Processing payment...'),
-                  ],
-                )
-              : Text('Pay ${Formats.money(total)}'),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                const Icon(Icons.lock_outline,
+                    size: 15, color: AppColors.success),
+                const SizedBox(width: 6),
+                Text('Secure checkout',
+                    style: AppText.tiny.copyWith(color: AppColors.success)),
+                const Spacer(),
+                const Text('Total  ', style: AppText.small),
+                Text(Formats.money(total), style: AppText.price),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            ElevatedButton(
+              onPressed: placing ? null : onPlace,
+              style: AppButtons.primary(),
+              child: placing
+                  ? const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(width: AppSpacing.md),
+                        Text('Processing payment...'),
+                      ],
+                    )
+                  : const Text('Place order'),
+            ),
+          ],
         ),
       ),
     );
@@ -508,6 +561,96 @@ class _EmptyPicker extends StatelessWidget {
           Icon(icon, color: AppColors.textMuted),
           const SizedBox(width: AppSpacing.md),
           Expanded(child: Text(message, style: AppText.bodyMuted)),
+        ],
+      ),
+    );
+  }
+}
+
+/// A numbered step heading, so the single-page checkout still reads as the
+/// familiar address -> payment -> review flow.
+class _StepHeader extends StatelessWidget {
+  final int step;
+  final String title;
+  final Widget? action;
+
+  const _StepHeader({required this.step, required this.title, this.action});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Container(
+          width: 26,
+          height: 26,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            color: AppColors.primary,
+            shape: BoxShape.circle,
+          ),
+          child: Text('$step',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              )),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(child: Text(title, style: AppText.h3)),
+        if (action != null) action!,
+      ],
+    );
+  }
+}
+
+/// A progress bar nudging the shopper toward the free-delivery threshold —
+/// a small, familiar touch that makes the summary feel like a real store.
+class _FreeDeliveryHint extends StatelessWidget {
+  final double subtotal;
+  final double remaining;
+
+  const _FreeDeliveryHint({required this.subtotal, required this.remaining});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool unlocked = remaining <= 0;
+    final double progress =
+        (subtotal / AppConfig.freeShippingThreshold).clamp(0.0, 1.0);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(
+                unlocked
+                    ? Icons.check_circle
+                    : Icons.local_shipping_outlined,
+                size: 16,
+                color: unlocked ? AppColors.success : AppColors.primary,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  unlocked
+                      ? 'You have unlocked free delivery.'
+                      : 'Add ${Formats.money(remaining)} more for free delivery.',
+                  style: AppText.small.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 7,
+              backgroundColor: AppColors.border,
+              color: unlocked ? AppColors.success : AppColors.primary,
+            ),
+          ),
         ],
       ),
     );

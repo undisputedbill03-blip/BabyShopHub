@@ -32,6 +32,9 @@ class BabyShopHubApp extends StatelessWidget {
         ChangeNotifierProvider<CartProvider>(
           create: (_) => CartProvider(),
         ),
+        ChangeNotifierProvider<FavoritesProvider>(
+          create: (_) => FavoritesProvider(),
+        ),
       ],
       child: MaterialApp(
         title: AppConfig.appName,
@@ -64,7 +67,7 @@ class _RootGateState extends State<_RootGate> {
   int? _boundUserId;
   bool _bindScheduled = false;
 
-  void _syncCart(int? userId) {
+  void _syncUser(int? userId) {
     if (userId == _boundUserId && !_bindScheduled) return;
     _boundUserId = userId;
     _bindScheduled = true;
@@ -72,6 +75,7 @@ class _RootGateState extends State<_RootGate> {
       _bindScheduled = false;
       if (mounted) {
         context.read<CartProvider>().bindUser(userId);
+        context.read<FavoritesProvider>().bindUser(userId);
       }
     });
   }
@@ -79,7 +83,7 @@ class _RootGateState extends State<_RootGate> {
   @override
   Widget build(BuildContext context) {
     final SessionProvider session = context.watch<SessionProvider>();
-    _syncCart(session.userId);
+    _syncUser(session.userId);
 
     if (session.restoring) {
       return const SplashScreen();

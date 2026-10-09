@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../core/formats.dart';
 import '../core/theme.dart';
 import '../models/models.dart';
+import '../providers/providers.dart';
 import 'common.dart';
 import 'star_rating.dart';
 
@@ -58,6 +60,12 @@ class ProductCard extends StatelessWidget {
                         label: 'Only ${product.stock} left',
                         color: AppColors.warning,
                       ),
+                    ),
+                  if (product.id != null)
+                    Positioned(
+                      top: AppSpacing.sm,
+                      right: AppSpacing.sm,
+                      child: _FavoriteHeart(productId: product.id!),
                     ),
                 ],
               ),
@@ -138,6 +146,38 @@ class _AddButton extends StatelessWidget {
         child: const Padding(
           padding: EdgeInsets.all(AppSpacing.sm),
           child: Icon(Icons.add_shopping_cart, size: 18, color: Colors.white),
+        ),
+      ),
+    );
+  }
+}
+
+/// A circular heart overlaid on a product card. Tapping it toggles the
+/// product in the shared wishlist; the icon reflects the live state and the
+/// tap is consumed so it never also opens the product.
+class _FavoriteHeart extends StatelessWidget {
+  final int productId;
+  const _FavoriteHeart({required this.productId});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isFavorite =
+        context.watch<FavoritesProvider>().isFavorite(productId);
+    return Material(
+      color: Colors.white,
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      elevation: 1,
+      shadowColor: const Color(0x22000000),
+      child: InkWell(
+        onTap: () => context.read<FavoritesProvider>().toggle(productId),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            size: 18,
+            color: isFavorite ? AppColors.primary : AppColors.textSecondary,
+          ),
         ),
       ),
     );

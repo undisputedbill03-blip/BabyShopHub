@@ -29,6 +29,28 @@ class AppColors {
   static const Color star = Color(0xFFF5A623);
 }
 
+/// Soft background + icon-colour pairs for category tiles, so the category row
+/// reads as a vibrant shelf rather than one block of tint. Shared by the home
+/// strip and the Categories tab so a given position is the same colour in
+/// both. Cycled by index.
+class AppCategoryTints {
+  AppCategoryTints._();
+
+  static const List<List<Color>> _pairs = <List<Color>>[
+    <Color>[Color(0xFFFCE7EC), Color(0xFFD9607C)],
+    <Color>[Color(0xFFE0F2F0), Color(0xFF2E8B84)],
+    <Color>[Color(0xFFFFF1D9), Color(0xFFCA8A04)],
+    <Color>[Color(0xFFEAE7FB), Color(0xFF6D5BD0)],
+    <Color>[Color(0xFFDDEEFB), Color(0xFF2E73C0)],
+    <Color>[Color(0xFFE2F5E9), Color(0xFF1B7A3D)],
+    <Color>[Color(0xFFFCE4DC), Color(0xFFD2592F)],
+    <Color>[Color(0xFFF3E1EF), Color(0xFF9B4D8E)],
+  ];
+
+  /// The `[background, foreground]` pair for a tile at [index].
+  static List<Color> at(int index) => _pairs[index % _pairs.length];
+}
+
 /// Consistent spacing scale. Using these instead of magic numbers keeps
 /// every screen visually aligned.
 class AppSpacing {
@@ -122,6 +144,15 @@ class AppDecorations {
       color: color ?? AppColors.surface,
       borderRadius: BorderRadius.circular(radius),
       border: Border.all(color: AppColors.border),
+      boxShadow: const <BoxShadow>[
+        // A very soft lift so white cards separate from the warm background
+        // without reading as heavy "material" elevation.
+        BoxShadow(
+          color: Color(0x0F000000),
+          blurRadius: 10,
+          offset: Offset(0, 3),
+        ),
+      ],
     );
   }
 
@@ -214,7 +245,9 @@ class AppButtons {
       foregroundColor: Colors.white,
       disabledBackgroundColor: AppColors.textMuted,
       disabledForegroundColor: Colors.white,
-      elevation: 0,
+      elevation: 2,
+      shadowColor: AppColors.primary.withValues(alpha: 0.35),
+      surfaceTintColor: Colors.transparent,
       minimumSize: Size.fromHeight(height),
       textStyle: AppText.button,
       shape: RoundedRectangleBorder(
@@ -286,6 +319,11 @@ ThemeData buildAppTheme() {
     colorScheme: scheme,
     scaffoldBackgroundColor: AppColors.background,
     dividerColor: AppColors.border,
+    // Gentle on-brand interaction feedback. This reads clearly on Windows
+    // desktop (hover) without shouting on touch.
+    hoverColor: AppColors.primary.withValues(alpha: 0.04),
+    splashColor: AppColors.primary.withValues(alpha: 0.10),
+    highlightColor: AppColors.primary.withValues(alpha: 0.06),
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.surface,
       foregroundColor: AppColors.textPrimary,

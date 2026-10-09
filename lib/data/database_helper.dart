@@ -70,9 +70,29 @@ class DatabaseHelper {
   }
 
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // Version 1 is the first release, so there is no migration to perform
-    // yet. Future versions add their ALTER TABLE statements here rather than
-    // dropping and recreating, so a user's orders survive an update.
+    // Each guarded block brings an older database up by one version, adding
+    // new tables without dropping existing ones, so a returning user keeps
+    // their orders, cart and reviews across an update.
+    if (oldVersion < 2) {
+      await _createFavorites(db);
+    }
+  }
+
+  /// Saved products (wishlist), added in v2. Shared by [_onCreate] and
+  /// [_onUpgrade] so a fresh install and an upgraded one end up identical.
+  static Future<void> _createFavorites(Database db) async {
+    await db.execute('''
+      CREATE TABLE favorites (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        created_at TEXT NOT NULL,
+        UNIQUE (user_id, product_id),
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX idx_favorites_user ON favorites (user_id)');
   }
 
   // ------------------------------------------------------------ schema
@@ -80,6 +100,7 @@ class DatabaseHelper {
   static Future<void> _onCreate(Database db, int version) async {
     await _createTables(db);
     await _createIndexes(db);
+    await _createFavorites(db);
     await _seed(db);
   }
 

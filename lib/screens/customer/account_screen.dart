@@ -8,6 +8,7 @@ import '../../providers/providers.dart';
 import 'address_list_screen.dart';
 import 'edit_profile_screen.dart';
 import 'faq_screen.dart';
+import 'favorites_screen.dart';
 import 'payment_methods_screen.dart';
 import 'support_list_screen.dart';
 
@@ -52,6 +53,12 @@ class AccountScreen extends StatelessWidget {
           _MenuGroup(
             title: 'Shopping',
             tiles: <Widget>[
+              _MenuTile(
+                icon: Icons.favorite_border,
+                label: 'My favorites',
+                subtitle: 'Products you have saved',
+                onTap: () => _push(context, const FavoritesScreen()),
+              ),
               _MenuTile(
                 icon: Icons.location_on_outlined,
                 label: 'Delivery addresses',

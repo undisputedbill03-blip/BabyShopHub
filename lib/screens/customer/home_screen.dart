@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,6 +9,7 @@ import '../../data/catalog_repository.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../../widgets/widgets.dart';
+import 'favorites_screen.dart';
 import 'product_detail_screen.dart';
 import 'product_list_screen.dart';
 
@@ -61,6 +64,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _openFavorites() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const FavoritesScreen(),
+      ),
+    );
+  }
+
   void _openCategory(ProductCategory category) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -102,11 +113,15 @@ class _HomeScreenState extends State<HomeScreen> {
             builder: (_HomeData data) => ListView(
               padding: const EdgeInsets.all(AppSpacing.lg),
               children: <Widget>[
-                _Greeting(firstName: firstName, onCartTap: widget.onGoToCart),
+                _Greeting(
+                  firstName: firstName,
+                  onCartTap: widget.onGoToCart,
+                  onFavoritesTap: _openFavorites,
+                ),
                 const SizedBox(height: AppSpacing.lg),
                 _SearchBar(onTap: _openSearch),
                 const SizedBox(height: AppSpacing.lg),
-                const _PromoCard(),
+                const _PromoCarousel(),
                 const SizedBox(height: AppSpacing.xl),
                 SectionHeader(
                   title: 'Shop by category',
@@ -148,12 +163,18 @@ class _HomeScreenState extends State<HomeScreen> {
 class _Greeting extends StatelessWidget {
   final String firstName;
   final VoidCallback onCartTap;
+  final VoidCallback onFavoritesTap;
 
-  const _Greeting({required this.firstName, required this.onCartTap});
+  const _Greeting({
+    required this.firstName,
+    required this.onCartTap,
+    required this.onFavoritesTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final int count = context.watch<CartProvider>().unitCount;
+    final int favCount = context.watch<FavoritesProvider>().count;
     return Row(
       children: <Widget>[
         Expanded(
@@ -165,6 +186,20 @@ class _Greeting extends StatelessWidget {
             ],
           ),
         ),
+        Badge(
+          isLabelVisible: favCount > 0,
+          label: Text('$favCount'),
+          backgroundColor: AppColors.primary,
+          child: IconButton(
+            onPressed: onFavoritesTap,
+            icon: const Icon(Icons.favorite_border),
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.surface,
+              side: const BorderSide(color: AppColors.border),
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
         Badge(
           isLabelVisible: count > 0,
           label: Text('$count'),
@@ -214,16 +249,124 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
-class _PromoCard extends StatelessWidget {
-  const _PromoCard();
+/// An auto-advancing promo banner carousel: swipeable, with page dots, and it
+/// rotates on its own every few seconds — the hero a real storefront opens
+/// with.
+class _PromoCarousel extends StatefulWidget {
+  const _PromoCarousel();
+
+  @override
+  State<_PromoCarousel> createState() => _PromoCarouselState();
+}
+
+class _PromoCarouselState extends State<_PromoCarousel> {
+  static const List<_Promo> _promos = <_Promo>[
+    _Promo(
+      title: 'Free delivery',
+      subtitle: 'On orders over ${AppConfig.currencySymbol}50,000. '
+          'Everything for your little one, delivered.',
+      icon: Icons.local_shipping_outlined,
+      colors: <Color>[AppColors.primary, AppColors.primaryDark],
+    ),
+    _Promo(
+      title: 'New arrivals weekly',
+      subtitle: 'Fresh styles and essentials added every week.',
+      icon: Icons.auto_awesome_outlined,
+      colors: <Color>[Color(0xFF2E8B84), Color(0xFF1F6F69)],
+    ),
+    _Promo(
+      title: 'Trusted brands',
+      subtitle: 'Pampers, Huggies, Avent, Aveeno and more.',
+      icon: Icons.verified_outlined,
+      colors: <Color>[Color(0xFF6D5BD0), Color(0xFF4C3DA8)],
+    ),
+  ];
+
+  final PageController _controller = PageController();
+  Timer? _timer;
+  int _page = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 4), _tick);
+  }
+  void _tick(Timer _) {
+    if (!mounted || !_controller.hasClients) return;
+    _controller.animateToPage(
+      (_page + 1) % _promos.length,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        SizedBox(
+          height: 104,
+          child: PageView.builder(
+            controller: _controller,
+            itemCount: _promos.length,
+            onPageChanged: (int i) => setState(() => _page = i),
+            itemBuilder: (_, int i) => _PromoSlide(promo: _promos[i]),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            for (int i = 0; i < _promos.length; i++)
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: i == _page ? 20 : 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: i == _page ? AppColors.primary : AppColors.border,
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _Promo {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final List<Color> colors;
+
+  const _Promo({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.colors,
+  });
+}
+
+class _PromoSlide extends StatelessWidget {
+  final _Promo promo;
+  const _PromoSlide({required this.promo});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: <Color>[AppColors.primary, AppColors.primaryDark],
+        gradient: LinearGradient(
+          colors: promo.colors,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -233,24 +376,21 @@ class _PromoCard extends StatelessWidget {
         children: <Widget>[
           Expanded(
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  'Free delivery',
-                  style: AppText.h2.copyWith(color: Colors.white),
-                ),
+                Text(promo.title,
+                    style: AppText.h2.copyWith(color: Colors.white)),
                 const SizedBox(height: 4),
-                Text(
-                  'On orders over ${AppConfig.currencySymbol}50,000. '
-                  'Everything for your little one, delivered.',
-                  style: AppText.small.copyWith(color: Colors.white70),
-                ),
+                Text(promo.subtitle,
+                    style: AppText.small.copyWith(color: Colors.white70),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
           const SizedBox(width: AppSpacing.md),
-          const Icon(Icons.local_shipping_outlined,
-              color: Colors.white, size: 48),
+          Icon(promo.icon, color: Colors.white, size: 48),
         ],
       ),
     );
@@ -276,6 +416,7 @@ class _CategoryStrip extends StatelessWidget {
         separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
         itemBuilder: (BuildContext context, int i) {
           final ProductCategory category = categories[i];
+          final List<Color> tint = AppCategoryTints.at(i);
           return GestureDetector(
             onTap: () => onTap(category),
             child: SizedBox(
@@ -286,11 +427,10 @@ class _CategoryStrip extends StatelessWidget {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: AppColors.primarySoft,
-                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      color: tint[0],
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
                     ),
-                    child: Icon(category.icon,
-                        color: AppColors.primary, size: 30),
+                    child: Icon(category.icon, color: tint[1], size: 30),
                   ),
                   const SizedBox(height: 6),
                   Text(

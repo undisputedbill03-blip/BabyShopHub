@@ -174,6 +174,15 @@ class SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
         children: <Widget>[
+          Container(
+            width: 4,
+            height: 18,
+            margin: const EdgeInsets.only(right: AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+            ),
+          ),
           Expanded(child: Text(title, style: AppText.h3)),
           if (actionLabel != null && onAction != null)
             TextButton(

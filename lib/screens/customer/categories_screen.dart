@@ -59,7 +59,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             ),
             itemCount: categories.length,
             itemBuilder: (BuildContext context, int i) =>
-                _CategoryTile(category: categories[i], onTap: _open),
+                _CategoryTile(category: categories[i], tintIndex: i, onTap: _open),
           );
         },
       ),
@@ -69,12 +69,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
 class _CategoryTile extends StatelessWidget {
   final ProductCategory category;
+  final int tintIndex;
   final ValueChanged<ProductCategory> onTap;
 
-  const _CategoryTile({required this.category, required this.onTap});
+  const _CategoryTile({
+    required this.category,
+    required this.tintIndex,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final List<Color> tint = AppCategoryTints.at(tintIndex);
     return GestureDetector(
       onTap: () => onTap(category),
       child: Container(
@@ -86,10 +92,10 @@ class _CategoryTile extends StatelessWidget {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: AppColors.primarySoft,
+                color: tint[0],
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
-              child: Icon(category.icon, color: AppColors.primary, size: 26),
+              child: Icon(category.icon, color: tint[1], size: 26),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(

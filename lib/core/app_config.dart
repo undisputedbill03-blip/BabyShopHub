@@ -22,7 +22,8 @@ class AppConfig {
   static const String databaseName = 'babyshophub.db';
 
   /// Bump this when the schema changes so onUpgrade runs.
-  static const int databaseVersion = 1;
+  /// v2 added the `favorites` table.
+  static const int databaseVersion = 2;
 
   /// Seeded demo accounts, shown on the login screen for convenience.
   static const String demoCustomerEmail = 'parent@babyshophub.com';

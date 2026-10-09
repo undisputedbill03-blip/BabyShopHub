@@ -2,4 +2,5 @@
 /// both providers.
 library;
 export 'cart_provider.dart';
+export 'favorites_provider.dart';
 export 'session_provider.dart';
